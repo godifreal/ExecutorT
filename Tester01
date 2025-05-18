@@ -1,0 +1,193 @@
+-- Simple GUI Executor by ChatGPT
+-- Place this LocalScript in StarterGui
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ExecutorGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 400, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+mainFrame.Active = true  -- enable dragging
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+-- Close Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "CloseBtn"
+closeBtn.Size = UDim2.new(0, 60, 0, 24)
+closeBtn.Position = UDim2.new(1, -64, 0, 4)
+closeBtn.Text = "Close"
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.BackgroundTransparency = 0.5
+closeBtn.Parent = mainFrame
+
+closeBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+end)
+
+-- Open Button
+local openBtn = Instance.new("TextButton")
+openBtn.Name = "OpenBtn"
+openBtn.Size = UDim2.new(0, 60, 0, 24)
+openBtn.Position = UDim2.new(0, 4, 0, 4)
+openBtn.Text = "Open"
+openBtn.TextColor3 = Color3.new(1, 1, 1)
+openBtn.BackgroundTransparency = 0.5
+openBtn.Parent = screenGui  -- place outside for always-visible
+
+openBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+end)
+
+-- Sidebar for Tabs
+local sidebar = Instance.new("Frame")
+sidebar.Name = "Sidebar"
+sidebar.Size = UDim2.new(0, 100, 1, -40)
+sidebar.Position = UDim2.new(0, 0, 0, 40)
+sidebar.BackgroundTransparency = 1
+sidebar.Parent = mainFrame
+
+local tabs = {"Home","Editor","Cloud","Console","Setting","Local Scripts","Saved Scripts","Players","Serverhop","Scripts Hubs","Credits"}
+local tabButtons = {}
+local pages = {}
+for i, tabName in ipairs(tabs) do
+    local btn = Instance.new("TextButton")
+    btn.Name = tabName .. "Tab"
+    btn.Size = UDim2.new(1, 0, 0, 25)
+    btn.Position = UDim2.new(0, 0, 0, (i-1)*25)
+    btn.Text = tabName
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundTransparency = 1
+    btn.Parent = sidebar
+    tabButtons[tabName] = btn
+    local page = Instance.new("Frame")
+    page.Name = tabName .. "Page"
+    page.Size = UDim2.new(1, -100, 1, -40)
+    page.Position = UDim2.new(0, 100, 0, 40)
+    page.BackgroundTransparency = 1
+    page.Visible = (tabName == "Home")
+    page.Parent = mainFrame
+    pages[tabName] = page
+    if tabName ~= "Home" and tabName ~= "Editor" and tabName ~= "Setting" and tabName ~= "Serverhop" and tabName ~= "Scripts Hubs" and tabName ~= "Credits" then
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -20, 0, 50)
+        label.Position = UDim2.new(0, 10, 0, 10)
+        label.Text = "Coming Soon"
+        label.TextColor3 = Color3.new(1,1,1)
+        label.BackgroundTransparency = 1
+        label.Parent = page
+    end
+end
+for name, btn in pairs(tabButtons) do
+    btn.MouseButton1Click:Connect(function()
+        for t, p in pairs(pages) do p.Visible = (t == name) end
+    end)
+end
+
+-- Home: FPS Display
+local fpsLabel = Instance.new("TextLabel")
+fpsLabel.Size = UDim2.new(0, 200, 0, 50)
+fpsLabel.Position = UDim2.new(0, 10, 0, 10)
+fpsLabel.TextColor3 = Color3.new(1,1,1)
+fpsLabel.BackgroundTransparency = 1
+fpsLabel.Text = "FPS: 0"
+fpsLabel.Parent = pages["Home"]
+local last = tick(); local frames = 0
+RunService.RenderStepped:Connect(function()
+    frames = frames + 1
+    if tick() - last >= 1 then
+        fpsLabel.Text = "FPS: " .. frames
+        frames = 0; last = tick()
+    end
+end)
+
+-- Editor: Execute and Clear
+local editor = pages["Editor"]
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(1, -20, 1, -60)
+textBox.Position = UDim2.new(0, 10, 0, 10)
+textBox.ClearTextOnFocus = false
+textBox.Text = "-- paste script here"
+textBox.TextWrapped = true
+textBox.TextYAlignment = Enum.TextYAlignment.Top
+textBox.MultiLine = true
+textBox.Parent = editor
+local execBtn = Instance.new("TextButton")
+execBtn.Size = UDim2.new(0, 80, 0, 30)
+execBtn.Position = UDim2.new(1, -90, 1, -40)
+execBtn.Text = "Execute"
+execBtn.Parent = editor
+local clearBtn = Instance.new("TextButton")
+clearBtn.Size = UDim2.new(0, 80, 0, 30)
+clearBtn.Position = UDim2.new(1, -180, 1, -40)
+clearBtn.Text = "Clear"
+clearBtn.Parent = editor
+execBtn.MouseButton1Click:Connect(function()
+    local ok, err = pcall(function() loadstring(textBox.Text)() end)
+    if not ok then warn(err) end
+end)
+clearBtn.MouseButton1Click:Connect(function() textBox.Text = "" end)
+
+-- Setting: FPS toggle and Anti Lag
+local setting = pages["Setting"]
+local fpsToggle = Instance.new("TextButton")
+fpsToggle.Size = UDim2.new(0, 120, 0, 30)
+fpsToggle.Position = UDim2.new(0, 10, 0, 10)
+fpsToggle.Text = "Toggle FPS"
+fpsToggle.Parent = setting
+local lagToggle = Instance.new("TextButton")
+lagToggle.Size = UDim2.new(0, 120, 0, 30)
+lagToggle.Position = UDim2.new(0, 10, 0, 50)
+lagToggle.Text = "Toggle Anti Lag"
+lagToggle.Parent = setting
+local fpsOn = true
+fpsToggle.MouseButton1Click:Connect(function() fpsOn = not fpsOn; fpsLabel.Visible = fpsOn end)
+local lagOn = false
+lagToggle.MouseButton1Click:Connect(function() lagOn = not lagOn; RunService:Set3dRenderingEnabled(not lagOn) end)
+
+-- Serverhop and Rejoin
+local srv = pages["Serverhop"]
+local hopBtn = Instance.new("TextButton")
+hopBtn.Size = UDim2.new(0, 120, 0, 30)
+hopBtn.Position = UDim2.new(0, 10, 0, 10)
+hopBtn.Text = "Serverhop"
+hopBtn.Parent = srv
+local rejoinBtn = Instance.new("TextButton")
+rejoinBtn.Size = UDim2.new(0, 120, 0, 30)
+rejoinBtn.Position = UDim2.new(0, 10, 0, 50)
+rejoinBtn.Text = "Rejoin"
+rejoinBtn.Parent = srv
+hopBtn.MouseButton1Click:Connect(function() TeleportService:Teleport(game.PlaceId) end)
+rejoinBtn.MouseButton1Click:Connect(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
+
+-- Scripts Hubs: load external script
+local hub = pages["Scripts Hubs"]
+local hubBtn = Instance.new("TextButton")
+hubBtn.Size = UDim2.new(0, 150, 0, 30)
+hubBtn.Position = UDim2.new(0, 10, 0, 10)
+hubBtn.Text = "Load Script Hub"
+hubBtn.Parent = hub
+hubBtn.MouseButton1Click:Connect(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/godifreal/MugenUiOp/refs/heads/main/2", true))()
+end)
+
+-- Credits
+local cred = pages["Credits"]
+local creditLabel = Instance.new("TextLabel")
+creditLabel.Size = UDim2.new(1, -20, 1, -20)
+creditLabel.Position = UDim2.new(0, 10, 0, 10)
+creditLabel.Text = "GUI Executor by TheMugenKing"
+creditLabel.TextColor3 = Color3.new(1,1,1)
+creditLabel.BackgroundTransparency = 1
+creditLabel.Parent = cred
