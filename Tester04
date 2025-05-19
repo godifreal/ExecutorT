@@ -1,0 +1,199 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local ScreenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+ScreenGui.Name = "MugenUI"
+ScreenGui.ResetOnSpawn = false
+
+-- GUI Open/Close Button
+local toggleButton = Instance.new("TextButton", ScreenGui)
+toggleButton.Size = UDim2.new(0, 100, 0, 30)
+toggleButton.Position = UDim2.new(0, 10, 0.5, -15)
+toggleButton.Text = "Open UI"
+toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 60)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+
+-- Main GUI Frame
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 600, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -300, 0.5, -175)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+MainFrame.Visible = false
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- Left Side Tab Panel (scrollable)
+local tabScroll = Instance.new("ScrollingFrame", MainFrame)
+tabScroll.Size = UDim2.new(0, 120, 1, 0)
+tabScroll.Position = UDim2.new(0, 0, 0, 0)
+tabScroll.CanvasSize = UDim2.new(0, 0, 0, 600)
+tabScroll.ScrollBarThickness = 6
+tabScroll.BackgroundColor3 = Color3.fromRGB(15, 15, 40)
+
+local UIListLayout = Instance.new("UIListLayout", tabScroll)
+UIListLayout.Padding = UDim.new(0, 5)
+
+-- Tab Names
+local Tabs = {
+    "Home",
+    "Editor",
+    "Cloud",
+    "Console",
+    "Setting",
+    "Local Scripts",
+    "Saved Scripts",
+    "Players",
+    "Serverhop",
+    "Scripts Hubs",
+    "Credits"
+}
+
+local ContentFrames = {}
+for _, tabName in ipairs(Tabs) do
+    local tabButton = Instance.new("TextButton", tabScroll)
+    tabButton.Size = UDim2.new(1, -10, 0, 30)
+    tabButton.Text = tabName
+    tabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 60)
+    tabButton.TextColor3 = Color3.new(1, 1, 1)
+    tabButton.Font = Enum.Font.SourceSans
+    tabButton.TextSize = 13
+
+    local content = Instance.new("Frame", MainFrame)
+    content.Size = UDim2.new(1, -130, 1, 0)
+    content.Position = UDim2.new(0, 130, 0, 0)
+    content.Visible = false
+    content.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
+    ContentFrames[tabName] = content
+
+    tabButton.MouseButton1Click:Connect(function()
+        for _, frame in pairs(ContentFrames) do frame.Visible = false end
+        content.Visible = true
+    end)
+end
+
+-- Open/Close GUI Function
+local open = false
+toggleButton.MouseButton1Click:Connect(function()
+    open = not open
+    MainFrame.Visible = open
+    toggleButton.Text = open and "Close UI" or "Open UI"
+end)
+
+-- Editor Tab
+do
+    local frame = ContentFrames["Editor"]
+
+    local box = Instance.new("TextBox", frame)
+    box.Size = UDim2.new(0.9, 0, 0.4, 0)
+    box.Position = UDim2.new(0.05, 0, 0.05, 0)
+    box.Text = "-- Paste your script here"
+    box.MultiLine = true
+    box.ClearTextOnFocus = false
+    box.TextXAlignment = Enum.TextXAlignment.Left
+    box.TextYAlignment = Enum.TextYAlignment.Top
+    box.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+    box.TextColor3 = Color3.new(1, 1, 1)
+
+    local exec = Instance.new("TextButton", frame)
+    exec.Size = UDim2.new(0, 80, 0, 30)
+    exec.Position = UDim2.new(0.05, 0, 0.5, 0)
+    exec.Text = "Execute"
+    exec.MouseButton1Click:Connect(function()
+        pcall(function()
+            loadstring(box.Text)()
+        end)
+    end)
+
+    local clear = Instance.new("TextButton", frame)
+    clear.Size = UDim2.new(0, 80, 0, 30)
+    clear.Position = UDim2.new(0.2, 0, 0.5, 0)
+    clear.Text = "Clear"
+    clear.MouseButton1Click:Connect(function()
+        box.Text = ""
+    end)
+
+    local clipboard = Instance.new("TextButton", frame)
+    clipboard.Size = UDim2.new(0, 120, 0, 30)
+    clipboard.Position = UDim2.new(0.35, 0, 0.5, 0)
+    clipboard.Text = "Exec Clipboard"
+    clipboard.MouseButton1Click:Connect(function()
+        if getclipboard then
+            local c = getclipboard()
+            if c and c ~= "" then
+                pcall(function() loadstring(c)() end)
+            end
+        end
+    end)
+
+    local toggle = Instance.new("TextButton", frame)
+    toggle.Size = UDim2.new(0, 80, 0, 30)
+    toggle.Position = UDim2.new(0.6, 0, 0.5, 0)
+    toggle.Text = "Hide"
+    local hidden = false
+    toggle.MouseButton1Click:Connect(function()
+        hidden = not hidden
+        box.Visible = not hidden
+        toggle.Text = hidden and "Show" or "Hide"
+    end)
+end
+
+-- Scripts Hub Tab
+do
+    local btn = Instance.new("TextButton", ContentFrames["Scripts Hubs"])
+    btn.Size = UDim2.new(0, 200, 0, 40)
+    btn.Position = UDim2.new(0.05, 0, 0.05, 0)
+    btn.Text = "Load Script Hub"
+    btn.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/godifreal/MugenUiOp/refs/heads/main/2", true))()
+    end)
+end
+
+-- Placeholder Tabs
+for _, name in ipairs({"Home", "Cloud", "Console", "Setting", "Local Scripts", "Saved Scripts", "Credits"}) do
+    local label = Instance.new("TextLabel", ContentFrames[name])
+    label.Size = UDim2.new(1, -20, 0, 25)
+    label.Position = UDim2.new(0, 10, 0, 10)
+    label.Text = name == "Credits" and "Credits: TheMugenKing" or "Coming Soon..."
+    label.TextColor3 = Color3.new(1,1,1)
+    label.BackgroundTransparency = 1
+end
+
+-- Players Tab
+do
+    local frame = ContentFrames["Players"]
+    local speed = Instance.new("TextButton", frame)
+    speed.Size = UDim2.new(0, 150, 0, 35)
+    speed.Position = UDim2.new(0.05, 0, 0.1, 0)
+    speed.Text = "Speed 100"
+    speed.MouseButton1Click:Connect(function()
+        player.Character.Humanoid.WalkSpeed = 100
+    end)
+
+    local jump = Instance.new("TextButton", frame)
+    jump.Size = UDim2.new(0, 150, 0, 35)
+    jump.Position = UDim2.new(0.05, 0, 0.25, 0)
+    jump.Text = "JumpPower 100"
+    jump.MouseButton1Click:Connect(function()
+        player.Character.Humanoid.JumpPower = 100
+    end)
+end
+
+-- Serverhop Tab
+do
+    local frame = ContentFrames["Serverhop"]
+    local hop = Instance.new("TextButton", frame)
+    hop.Size = UDim2.new(0, 150, 0, 35)
+    hop.Position = UDim2.new(0.05, 0, 0.1, 0)
+    hop.Text = "Serverhop"
+    hop.MouseButton1Click:Connect(function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId)
+    end)
+
+    local rejoin = Instance.new("TextButton", frame)
+    rejoin.Size = UDim2.new(0, 150, 0, 35)
+    rejoin.Position = UDim2.new(0.05, 0, 0.25, 0)
+    rejoin.Text = "Rejoin"
+    rejoin.MouseButton1Click:Connect(function()
+        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+    end)
+end
