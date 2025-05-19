@@ -76,7 +76,7 @@ local open = false
 toggleButton.MouseButton1Click:Connect(function()
     open = not open
     MainFrame.Visible = open
-    toggleButton.Text = open and "Close UI" or "Open UI"
+    toggleButton.Text = open and "Close" or "Open"
 end)
 
 -- Editor Tab
