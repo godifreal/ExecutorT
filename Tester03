@@ -1,4 +1,4 @@
--- Premium GUI Executor by TheMugenKing
+-- Boxy Premium GUI Executor by ChatGPT
 -- Place this LocalScript in StarterGui
 
 local Players = game:GetService("Players")
@@ -12,7 +12,7 @@ screenGui.Name = "ExecutorGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
--- Main Frame (Premium)
+-- Main Frame (Box Style)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 450, 0, 350)
@@ -22,23 +22,11 @@ mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Parent = screenGui
 
--- Rounded corners & Border
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 12)
-corner.Parent = mainFrame
-
+-- Border Only (sharp corners)
 local stroke = Instance.new("UIStroke")
 stroke.Thickness = 2
 stroke.Color = Color3.fromRGB(50, 50, 70)
 stroke.Parent = mainFrame
-
--- UI Gradient
-local gradient = Instance.new("UIGradient")
-gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 25)),
-})
-gradient.Parent = mainFrame
 
 -- Close Button
 local closeBtn = Instance.new("TextButton")
@@ -53,7 +41,7 @@ closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
 closeBtn.Parent = mainFrame
 
 local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.CornerRadius = UDim.new(0, 4)
 closeCorner.Parent = closeBtn
 
 closeBtn.MouseButton1Click:Connect(function()
@@ -73,7 +61,7 @@ openBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
 openBtn.Parent = screenGui
 
 local openCorner = Instance.new("UICorner")
-openCorner.CornerRadius = UDim.new(0, 8)
+openCorner.CornerRadius = UDim.new(0, 4)
 openCorner.Parent = openBtn
 
 openBtn.MouseButton1Click:Connect(function()
@@ -91,7 +79,6 @@ sidebar.Parent = mainFrame
 local tabs = {"Home","Editor","Cloud","Console","Setting","Local Scripts","Saved Scripts","Players","Serverhop","Scripts Hubs","Credits"}
 local tabButtons = {}
 local pages = {}
-
 for i, tabName in ipairs(tabs) do
     local btn = Instance.new("TextButton")
     btn.Name = tabName .. "Tab"
@@ -103,9 +90,7 @@ for i, tabName in ipairs(tabs) do
     btn.TextColor3 = Color3.fromRGB(200,200,200)
     btn.BackgroundColor3 = Color3.fromRGB(30,30,45)
     btn.Parent = sidebar
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 6)
-    btnCorner.Parent = btn
+    local btnStroke = Instance.new("UIStroke") btnStroke.Thickness = 1; btnStroke.Color = Color3.fromRGB(50,50,70); btnStroke.Parent = btn
     tabButtons[tabName] = btn
 
     local page = Instance.new("Frame")
@@ -117,7 +102,7 @@ for i, tabName in ipairs(tabs) do
     page.Parent = mainFrame
     pages[tabName] = page
 
-    if tabName ~= "Home" and tabName ~= "Editor" and tabName ~= "Setting" and tabName ~= "Serverhop" and tabName ~= "Scripts Hubs" and tabName ~= "Credits" then
+    if not (tabName == "Home" or tabName == "Editor" or tabName == "Setting" or tabName == "Serverhop" or tabName == "Scripts Hubs" or tabName == "Credits") then
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(1, -20, 0, 50)
         label.Position = UDim2.new(0, 10, 0, 10)
@@ -129,7 +114,6 @@ for i, tabName in ipairs(tabs) do
         label.Parent = page
     end
 end
-
 for name, btn in pairs(tabButtons) do
     btn.MouseButton1Click:Connect(function()
         for t, p in pairs(pages) do p.Visible = (t == name) end
@@ -150,16 +134,14 @@ fpsLabel.Parent = pages["Home"]
 local last = tick(); local frames = 0
 RunService.RenderStepped:Connect(function()
     frames += 1
-    if tick() - last >= 1 then
-        fpsLabel.Text = "FPS: " .. frames
-        frames = 0; last = tick()
-    end
+    if tick() - last >= 1 then fpsLabel.Text = "FPS: " .. frames; frames = 0; last = tick() end
 end)
 
--- Editor: Execute, Clear, and Execute Clipboard
+-- Editor: Execute, Clear, Exec Clipboard, Hide/Show under clipboard
 local editor = pages["Editor"]
 local textBox = Instance.new("TextBox")
-textBox.Size = UDim2.new(1, -40, 1, -100)
+textBox.Name = "ScriptBox"
+textBox.Size = UDim2.new(1, -40, 1, -140)
 textBox.Position = UDim2.new(0, 10, 0, 10)
 textBox.ClearTextOnFocus = false
 textBox.Text = "-- paste script here"
@@ -167,52 +149,52 @@ textBox.Font = Enum.Font.Code
 textBox.TextWrapped = true
 textBox.TextYAlignment = Enum.TextYAlignment.Top
 textBox.MultiLine = true
+textBox.TextColor3 = Color3.new(1,1,1)
+textBox.BackgroundColor3 = Color3.fromRGB(30,30,45)
 textBox.Parent = editor
+local boxStroke = Instance.new("UIStroke") boxStroke.Thickness = 1; boxStroke.Color = Color3.fromRGB(50,50,70); boxStroke.Parent = textBox
 
--- Buttons container
 local btnContainer = Instance.new("Frame")
-btnContainer.Size = UDim2.new(1, -20, 0, 40)
-btnContainer.Position = UDim2.new(0, 10, 1, -50)
+btnContainer.Size = UDim2.new(1, -20, 0, 100)
+btnContainer.Position = UDim2.new(0, 10, 1, -110)
 btnContainer.BackgroundTransparency = 1
 btnContainer.Parent = editor
 
-local function createBtn(name, xOffset)
+local function createBtn(name, position)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 100, 1, 0)
-    btn.Position = UDim2.new(0, xOffset, 0, 0)
+    btn.Size = UDim2.new(0, 120, 0, 40)
+    btn.Position = position
     btn.Text = name
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 16
     btn.TextColor3 = Color3.new(1,1,1)
     btn.BackgroundColor3 = Color3.fromRGB(45,45,60)
     btn.Parent = btnContainer
-    local bc = Instance.new("UICorner") bc.CornerRadius = UDim.new(0,6) bc.Parent = btn
+    local bc = Instance.new("UICorner"); bc.CornerRadius = UDim.new(0,4); bc.Parent = btn
     return btn
 end
 
-local execBtn = createBtn("Execute", 0)
-local clipBtn = createBtn("Exec Clipboard", 110)
-local clearBtn = createBtn("Clear", 230)
+local execBtn = createBtn("Execute", UDim2.new(0, 0, 0, 0))
+local clipBtn = createBtn("Exec Clipboard", UDim2.new(0, 130, 0, 0))
+local clearBtn = createBtn("Clear", UDim2.new(0, 260, 0, 0))
+local hideBtn = createBtn("Hide", UDim2.new(0, 260, 0, 50))
 
 execBtn.MouseButton1Click:Connect(function()
-    local ok, err = pcall(function() loadstring(textBox.Text)() end)
-    if not ok then warn(err) end
+    pcall(function() loadstring(textBox.Text)() end)
 end)
-
 clearBtn.MouseButton1Click:Connect(function()
     textBox.Text = ""
 end)
-
 clipBtn.MouseButton1Click:Connect(function()
-    local success, clip = pcall(function()
-        return getclipboard()
-    end)
-    if success and type(clip) == "string" then
-        local ok, err = pcall(function() loadstring(clip)() end)
-        if not ok then warn(err) end
-    else
-        warn("Clipboard empty or unsupported")
-    end
+    local success, clip = pcall(getclipboard)
+    if success and type(clip)=="string" then pcall(loadstring(clip)) end
+end)
+
+local hidden = false
+hideBtn.MouseButton1Click:Connect(function()
+    hidden = not hidden
+    textBox.Visible = not hidden
+    hideBtn.Text = hidden and "Show" or "Hide"
 end)
 
 -- Setting: FPS toggle and Anti Lag
@@ -226,7 +208,7 @@ fpsToggle.TextSize = 18
 fpsToggle.TextColor3 = Color3.new(1,1,1)
 fpsToggle.BackgroundColor3 = Color3.fromRGB(45,45,60)
 fpsToggle.Parent = setting
-local ft = Instance.new("UICorner") ft.CornerRadius = UDim.new(0,6) ft.Parent = fpsToggle
+local ft = Instance.new("UIStroke") ft.Thickness=1; ft.Color=Color3.fromRGB(50,50,70); ft.Parent = fpsToggle
 
 local lagToggle = Instance.new("TextButton")
 lagToggle.Size = UDim2.new(0, 150, 0, 40)
@@ -237,7 +219,7 @@ lagToggle.TextSize = 18
 lagToggle.TextColor3 = Color3.new(1,1,1)
 lagToggle.BackgroundColor3 = Color3.fromRGB(45,45,60)
 lagToggle.Parent = setting
-local lt = Instance.new("UICorner") lt.CornerRadius = UDim.new(0,6) lt.Parent = lagToggle
+local lt = Instance.new("UIStroke") lt.Thickness=1; lt.Color=Color3.fromRGB(50,50,70); lt.Parent = lagToggle
 
 local fpsOn = true
 fpsToggle.MouseButton1Click:Connect(function() fpsOn = not fpsOn; fpsLabel.Visible = fpsOn end)
@@ -247,11 +229,9 @@ lagToggle.MouseButton1Click:Connect(function() lagOn = not lagOn; RunService:Set
 
 -- Serverhop and Rejoin
 local srv = pages["Serverhop"]
-local hopBtn = createBtn("Serverhop", 0)
+local hopBtn = createBtn("Serverhop", UDim2.new(0, 0, 0, 0))
 hopBtn.Parent = srv
-local rejoinBtn = createBtn("Rejoin", 0)
-rejoinBtn.Position = UDim2.new(0, 0, 0, 50)
-
+local rejoinBtn = createBtn("Rejoin", UDim2.new(0, 0, 0, 50))
 hopBtn.MouseButton1Click:Connect(function() TeleportService:Teleport(game.PlaceId) end)
 rejoinBtn.MouseButton1Click:Connect(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
 
@@ -266,7 +246,7 @@ hubBtn.TextSize = 18
 hubBtn.TextColor3 = Color3.new(1,1,1)
 hubBtn.BackgroundColor3 = Color3.fromRGB(45,45,60)
 hubBtn.Parent = hub
-local hb = Instance.new("UICorner") hb.CornerRadius = UDim.new(0,6) hb.Parent = hubBtn
+local hb = Instance.new("UIStroke") hb.Thickness=1; hb.Color=Color3.fromRGB(50,50,70); hb.Parent = hubBtn
 hubBtn.MouseButton1Click:Connect(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/godifreal/MugenUiOp/refs/heads/main/2", true))()
 end)
