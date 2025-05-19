@@ -9,7 +9,7 @@ ScreenGui.ResetOnSpawn = false
 local toggleButton = Instance.new("TextButton", ScreenGui)
 toggleButton.Size = UDim2.new(0, 100, 0, 30)
 toggleButton.Position = UDim2.new(0, 10, 0.5, -15)
-toggleButton.Text = "Open UI"
+toggleButton.Text = "Open"
 toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 60)
 toggleButton.TextColor3 = Color3.new(1, 1, 1)
 
